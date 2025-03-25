@@ -1,3 +1,4 @@
+// Not support 64 bit read/write
 #include "KR260_ioctl.h"
 
 #define AES_BASE_ADDR 0xA0000000
