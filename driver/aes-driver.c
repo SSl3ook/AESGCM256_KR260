@@ -1,5 +1,6 @@
 /**
  * AES256GCM10G25GIP Kernel Driver with ioctl support
+ * Not support 64 bit read/write
  */
 #include <linux/module.h>
 #include <linux/init.h>
