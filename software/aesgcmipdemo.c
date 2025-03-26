@@ -24,7 +24,7 @@
 //-- 0.50  | 2022/03/24 | Pahol S.     | New Creation
 //---------------------------------------------------------------------------
 
-#include "KR260.h"
+#include "KR260_ioctl.h"
 #include <time.h>
 //******************************************************************
 // Register address
@@ -646,6 +646,7 @@ int main(void)
 		gen_printf("7. Bypass Data\n");
 		gen_printf("8. Clone Memory\n");
 		gen_printf("9. Loop verification\n");
+		gen_printf("q. Exit program\n");
 		gen_printf("Choice: ");
 	
 		key = get_char();
@@ -785,7 +786,10 @@ int main(void)
 				gen_printf("\n+++ Loop verification +++\n");
 				loop_verify(aad_cnt, data_cnt);
 				break;
-
+			case 'q' :
+				close_device();  // Close the device file before exiting
+				printf("Exiting program\n");
+				return 0;	
 			default : 
 				gen_printf("invalid choice!! %c\n", key);
 				break;

@@ -2,7 +2,7 @@
 #include "KR260_ioctl.h"
 
 #define AES_BASE_ADDR 0xA0000000
-
+#define AES_ADDR_RANGE 0xFFFF
 // Global file descriptor for the AES device
 static int aes_fd = -1;
 
@@ -39,16 +39,11 @@ int getch(void)
 } 
 
 uint64_t user_read(off_t addr, int wordsize) {
-    int fd;
     struct aes_reg_data reg;
     uint64_t result = 0;
     
     // Open device
-    fd = open("/dev/aes256gcm", O_RDWR);
-    if (fd < 0) {
-        perror("Failed to open AES device");
-        return 0;
-    }
+    ensure_device_open();
     
     // Convert physical address to offset
     if (addr >= AES_BASE_ADDR && addr < (AES_BASE_ADDR + 0x10000)) {
@@ -56,8 +51,8 @@ uint64_t user_read(off_t addr, int wordsize) {
     } else {
         // Address is out of range
         fprintf(stderr, "Error: Address 0x%lx is outside AES device range (0x%x-0x%x)\n",
-                (unsigned long)addr, AES_BASE_ADDR, AES_BASE_ADDR + 0xFFFF);
-        close(fd);
+                (unsigned long)addr, AES_BASE_ADDR, AES_BASE_ADDR + AES_ADDR_RANGE);
+        close_device();
         return 0;  // Return 0 instead of attempting invalid access
     }
     
@@ -77,18 +72,16 @@ uint64_t user_read(off_t addr, int wordsize) {
             break;
         default:
             fprintf(stderr, "Invalid wordsize specified\n");
-            close(fd);
             return 0;
     }
     
     // Read the register value using ioctl
-    if (ioctl(fd, AES_IOC_READ_REG, &reg) < 0) {
+    if (ioctl(aes_fd, AES_IOC_READ_REG, &reg) < 0) {
         perror("ioctl read failed");
-        close(fd);
+        close_device();
         return 0;
     }
     
-    close(fd);  // Close file descriptor to prevent leaks
     
     // Return the value as is - the driver will have returned the correct value size
     result = reg.value;
@@ -97,15 +90,9 @@ uint64_t user_read(off_t addr, int wordsize) {
 }
 
 uint64_t user_write(off_t addr, int wordsize, uint64_t data) {
-    int fd;
     struct aes_reg_data reg;
     
-    // Open device
-    fd = open("/dev/aes256gcm", O_RDWR);
-    if (fd < 0) {
-        perror("Failed to open AES device");
-        return 0;
-    }
+    ensure_device_open();
     
     // Convert physical address to offset
     if (addr >= AES_BASE_ADDR && addr < (AES_BASE_ADDR + 0x10000)) {
@@ -113,8 +100,8 @@ uint64_t user_write(off_t addr, int wordsize, uint64_t data) {
     } else {
         // Address is out of range
         fprintf(stderr, "Error: Address 0x%lx is outside AES device range (0x%x-0x%x)\n",
-                (unsigned long)addr, AES_BASE_ADDR, AES_BASE_ADDR + 0xFFFF);
-        close(fd);
+                (unsigned long)addr, AES_BASE_ADDR, AES_BASE_ADDR + AES_ADDR_RANGE);
+        close_device();
         return 0;  // Return 0 instead of attempting invalid access
     }
     
@@ -136,18 +123,16 @@ uint64_t user_write(off_t addr, int wordsize, uint64_t data) {
             break;
         default:
             fprintf(stderr, "Invalid wordsize specified\n");
-            close(fd);
             return 0;
     }
     
     // Write the register value using ioctl
-    if (ioctl(fd, AES_IOC_WRITE_REG, &reg) < 0) {
+    if (ioctl(aes_fd, AES_IOC_WRITE_REG, &reg) < 0) {
         perror("ioctl write failed");
-        close(fd);
+        close_device();
         return 0;
     }
     
-    close(fd);  // Close file descriptor to prevent leaks
     
     // Return the data that was written
     return data;
