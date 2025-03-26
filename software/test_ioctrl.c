@@ -6,8 +6,8 @@
 int main(int argc, char *argv[]) {
     uint64_t value;
     int choice;
-    uint32_t offset;
-    uint32_t data;
+    uint32_t address;
+    uint64_t data;
     
     printf("AES256GCM10G25GIP Register Access Program\n");
     printf("=========================================\n");
@@ -23,22 +23,22 @@ int main(int argc, char *argv[]) {
         
         switch (choice) {
             case 1:
-                printf("Enter register offset (hex): 0x");
-                scanf("%x", &offset);
+                printf("Enter register address (hex): 0x");
+                scanf("%x", &address);
                 
-                value = user_read(offset, 8);
-                printf("Register 0x%08x = 0x%08lx\n", offset, value);
+                value = user_read(address, 64);
+                printf("Register 0x%08x = 0x%lx\n", address, value);
                 break;
                 
             case 2:
-                printf("Enter register offset (hex): 0x");
-                scanf("%x", &offset);
+                printf("Enter register address (hex): 0x");
+                scanf("%x", &address);
                 
                 printf("Enter value to write (hex): 0x");
-                scanf("%x", &data);
+                scanf("%lx", &data);
                 
-                value = user_write(offset, 8, data); 
-                printf("After write: Register 0x%08x = 0x%08lx\n", offset, value);
+                value = user_write(address, 64, data); 
+                printf("After write: Register 0x%08x = 0x%lx\n", address, value);
                 break;
                 
             case 3:

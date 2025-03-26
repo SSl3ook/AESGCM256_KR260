@@ -1,6 +1,5 @@
 /**
  * AES256GCM10G25GIP Kernel Driver with ioctl support
- * Not support 64 bit read/write
  */
 #include <linux/module.h>
 #include <linux/init.h>
@@ -25,8 +24,8 @@
 /* Structure for register access */
 struct aes_reg_data {
     uint32_t offset;    /* Register offset */
-    uint32_t value;     /* Value to read or write */
-    uint8_t width;      /* Access width in bits: 8, 16, 32 */
+    uint64_t value;     /* Value to read or write */
+    uint8_t width;      /* Access width in bits: 8, 16, 32, 64 */
 };
 
 /* Device private data structure */
@@ -87,6 +86,9 @@ static long aes_ioctl(struct file *file, unsigned int cmd, unsigned long arg)
         default:
             reg.value = readl(aes->regs + reg.offset);
             break;
+        case 64:
+            reg.value = readq(aes->regs + reg.offset);
+            break;
         }
         
         if (copy_to_user((void __user *)arg, &reg, sizeof(reg)))
@@ -114,6 +116,9 @@ static long aes_ioctl(struct file *file, unsigned int cmd, unsigned long arg)
         case 32:
         default:
             writel(reg.value, aes->regs + reg.offset);
+            break;
+        case 64:
+            writeq(reg.value, aes->regs + reg.offset);
             break;
         }
         break;

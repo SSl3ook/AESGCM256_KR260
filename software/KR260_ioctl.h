@@ -21,7 +21,7 @@
 /* Structure for register access */
 struct aes_reg_data {
     uint32_t offset;    /* Register offset */
-    uint32_t value;     /* Value to read or write */
+    uint64_t value;     /* Value to read or write */
     uint8_t width;      /* Access width in bits: 8, 16, 32, 64 */
 };
 
